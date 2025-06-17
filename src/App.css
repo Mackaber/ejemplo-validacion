@@ -77,4 +77,5 @@ button[type="submit"]:hover {
   margin-left: 8px;
   display: block;
   margin-top: 2px;
+  white-space: pre-line;
 }

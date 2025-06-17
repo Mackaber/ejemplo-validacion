@@ -67,10 +67,18 @@ function App() {
 
     //const error_list = data.error.issues.reduce((obj, error) => {obj[error.path] = error.message; return obj}, {})
     const issues = data.error.issues
-    const error_list = {}
+    const error_list = { }
+    let password_errors = []
     for(let i = 0; i<issues.length;i++) {
-      error_list[issues[i].path] = issues[i].message
+      let error_message = issues[i].message
+      if(issues[i].path[0] === 'password') {
+        password_errors.push(error_message)
+      } else {
+        error_list[issues[i].path] = error_message
+      }
     }
+
+    error_list["password"] = password_errors.join("\n")
 
     console.log(error_list)
 
