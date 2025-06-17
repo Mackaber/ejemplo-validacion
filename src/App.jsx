@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { z } from 'zod'
+import axios from 'axios'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
@@ -57,43 +58,54 @@ function App() {
     new_form[input_name] = e.target.value
     setForm(new_form)
 
-    const data =  userSchemaZod.safeParse(new_form) 
+    const data = userSchemaZod.safeParse(new_form)
 
     // .forEach
     // .map
     // .reduce
 
-    console.log(data.error.issues)
+    //console.log(data.error.issues)
 
     //const error_list = data.error.issues.reduce((obj, error) => {obj[error.path] = error.message; return obj}, {})
-    const issues = data.error.issues
-    const error_list = { }
-    let password_errors = []
-    for(let i = 0; i<issues.length;i++) {
-      let error_message = issues[i].message
-      if(issues[i].path[0] === 'password') {
-        password_errors.push(error_message)
-      } else {
-        error_list[issues[i].path] = error_message
+    if (data.error) {
+      const issues = data.error.issues
+      const error_list = {}
+      let password_errors = []
+      for (let i = 0; i < issues.length; i++) {
+        let error_message = issues[i].message
+        if (issues[i].path[0] === 'password') {
+          password_errors.push(error_message)
+        } else {
+          error_list[issues[i].path] = error_message
+        }
       }
+
+      error_list["password"] = password_errors.join("\n")
+
+      console.log(error_list)
+
+      const new_errors = { ...errors }
+      const error_label_name = e.target.name
+      new_errors[error_label_name] = error_list[e.target.name] ? error_list[e.target.name] : ""
+      // new_errors[error_label_name] = error_list[e.target.name] || ""
+      setErrors(new_errors)
     }
-
-    error_list["password"] = password_errors.join("\n")
-
-    console.log(error_list)
-
-    const new_errors = { ...errors }
-    const error_label_name = e.target.name
-    new_errors[error_label_name] = error_list[e.target.name] ? error_list[e.target.name] : ""
-    // new_errors[error_label_name] = error_list[e.target.name] || ""
-    setErrors(new_errors)
-
 
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(form)
+    try {
+      const response = await axios.post("http://localhost:3000/register", form)
+      console.log(response)
+    } catch(e) {
+      if(e.code == "ERR_BAD_REQUEST") {
+        const new_errors = { ...errors }
+        const error_label_name = e.response.data.errors[0].path
+        new_errors[error_label_name] = e.response.data.errors[0].msg 
+        setErrors(new_errors)
+      }
+    }
   };
 
   return (
